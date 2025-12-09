@@ -6,11 +6,14 @@ import animals.petstore.pet.attributes.Gender;
 import animals.petstore.pet.attributes.Skin;
 import animals.petstore.pet.types.Cat;
 import animals.petstore.pet.types.Dog;
+import animals.petstore.pet.types.Snake;
 import animals.petstore.store.DuplicatePetStoreRecordException;
 import animals.petstore.store.PetNotFoundSaleException;
 import animals.petstore.store.PetStore;
 import number.Numbers;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -39,7 +42,8 @@ public class PetStoreTest
     @DisplayName("Inventory Count Test")
     public void validateInventory()
     {
-        assertEquals(5, petStore.getPetsForSale().size(),"Inventory counts are off!");
+        // 5 original pets + 2 snakes from PetStore.init()
+        assertEquals(7, petStore.getPetsForSale().size(),"Inventory counts are off!");
     }
 
     @Test
@@ -169,4 +173,43 @@ public class PetStoreTest
         assertEquals("Duplicate Cat record store id [2]", thrown.getMessage());
     }
 
+
+    /**
+     * PART 2
+     * Added Tests for the new Snake class
+     */
+
+    @Test
+    @DisplayName("Sale of Ball Python Remove Item Test")
+    public void ballPythonSoldTest() throws DuplicatePetStoreRecordException, PetNotFoundSaleException {
+        int inventorySize = petStore.getPetsForSale().size() - 1;
+
+        Snake ballPython = new Snake(AnimalType.DOMESTIC, Skin.SCALES, Gender.FEMALE, Breed.BALL_PYTHON,
+                new BigDecimal("150.00"), 4);
+        Snake removedItem = (Snake) petStore.soldPetItem(ballPython);
+
+        assertEquals(inventorySize, petStore.getPetsForSale().size(), "Expected inventory does not match actual");
+        assertEquals(ballPython.getPetStoreId(), removedItem.getPetStoreId(), "The snake items are identical");
+    }
+
+    @Test
+    @DisplayName("Duplicate Ball Python entry triggers duplicate record exception")
+    public void duplicateBallPythonRecordOnSaleTest() {
+        Snake firstSnake = new Snake(AnimalType.DOMESTIC, Skin.SCALES, Gender.FEMALE, Breed.BALL_PYTHON,
+                new BigDecimal("150.00"), 4);
+        Snake secondSnake = new Snake(AnimalType.DOMESTIC, Skin.SCALES, Gender.MALE, Breed.BALL_PYTHON,
+                new BigDecimal("199.99"), 4);
+
+        petStore.addPetInventoryItem(firstSnake);
+        petStore.addPetInventoryItem(secondSnake);
+
+        DuplicatePetStoreRecordException thrown = assertThrows(
+                DuplicatePetStoreRecordException.class,
+                () -> petStore.soldPetItem(firstSnake)
+        );
+
+        assertEquals("Duplicate Snake record store id [4]", thrown.getMessage());
+    }
+
 }
+
