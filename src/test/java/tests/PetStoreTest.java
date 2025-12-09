@@ -130,4 +130,43 @@ public class PetStoreTest
         assertTrue(Numbers.isEven(number));
     }
 
+    /**
+     * Part 1
+     * This will test the exception classes
+     * that were not tested before,
+     * increasing code coverage
+     */
+    @Test
+    @DisplayName("Pet sale attempt without store identifier")
+    public void petWithoutStoreIdThrowsException() {
+        Cat catWithoutId = new Cat(AnimalType.DOMESTIC, Skin.UNKNOWN, Gender.FEMALE, Breed.SPHYNX,
+                new BigDecimal("100.00"));
+
+        PetNotFoundSaleException thrown = assertThrows(
+                PetNotFoundSaleException.class,
+                () -> petStore.soldPetItem(catWithoutId)
+        );
+
+        assertEquals("The Pet is not part of the pet store!!", thrown.getMessage());
+    }
+
+    @Test
+    @DisplayName("Duplicate Sphynx entry triggers duplicate record exception")
+    public void duplicateSphynxRecordOnSaleTest() {
+        Cat firstSphynx = new Cat(AnimalType.DOMESTIC, Skin.UNKNOWN, Gender.FEMALE, Breed.SPHYNX,
+                new BigDecimal("100.00"), 2);
+        Cat secondSphynx = new Cat(AnimalType.DOMESTIC, Skin.FUR, Gender.MALE, Breed.SPHYNX,
+                new BigDecimal("777.77"), 2);
+
+        petStore.addPetInventoryItem(firstSphynx);
+        petStore.addPetInventoryItem(secondSphynx);
+
+        DuplicatePetStoreRecordException thrown = assertThrows(
+                DuplicatePetStoreRecordException.class,
+                () -> petStore.soldPetItem(firstSphynx)
+        );
+
+        assertEquals("Duplicate Cat record store id [2]", thrown.getMessage());
+    }
+
 }
